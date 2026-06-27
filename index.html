@@ -268,6 +268,28 @@ footer{text-align:center;padding:30px 16px 40px;position:relative;z-index:10;mar
   .mode-tab{font-size:9px;padding:6px 10px}
   .card{padding:16px 14px}
 }
+
+/* Individual copy rows */
+.out-card-sub{margin-bottom:8px}
+.sub-label{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--neon);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sub-row{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid rgba(0,245,255,0.06)}
+.sub-row:last-child{border-bottom:none}
+.sub-val{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text);flex:1;line-height:1.6;word-break:break-word}
+.title-row .sub-val{color:var(--text2)}
+.mini-copy{padding:3px 8px;background:transparent;border:1px solid rgba(0,245,255,0.2);border-radius:2px;color:var(--neon2);font-family:'Share Tech Mono',monospace;font-size:9px;cursor:none;transition:all 0.2s;flex-shrink:0;-webkit-tap-highlight-color:transparent;letter-spacing:1px;white-space:nowrap}
+.mini-copy:hover,.mini-copy:active{background:rgba(191,0,255,0.1);border-color:var(--neon2)}
+
+/* AI Buttons */
+.ai-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid rgba(0,245,255,0.08)}
+.ai-btn{padding:7px 14px;border-radius:3px;font-family:'Share Tech Mono',monospace;font-size:10px;cursor:none;transition:all 0.2s;letter-spacing:1px;border:1px solid;-webkit-tap-highlight-color:transparent;font-weight:600}
+.ai-btn.chatgpt{border-color:rgba(16,163,127,0.4);color:#10a37f;background:rgba(16,163,127,0.06)}
+.ai-btn.chatgpt:hover,.ai-btn.chatgpt:active{background:rgba(16,163,127,0.15);box-shadow:0 0 12px rgba(16,163,127,0.2)}
+.ai-btn.grok{border-color:rgba(255,255,255,0.2);color:#ffffff;background:rgba(255,255,255,0.04)}
+.ai-btn.grok:hover,.ai-btn.grok:active{background:rgba(255,255,255,0.1)}
+.ai-btn.claude{border-color:rgba(255,150,80,0.4);color:#ff9650;background:rgba(255,150,80,0.06)}
+.ai-btn.claude:hover,.ai-btn.claude:active{background:rgba(255,150,80,0.15);box-shadow:0 0 12px rgba(255,150,80,0.2)}
+.ai-btn.gemini{border-color:rgba(66,133,244,0.4);color:#4285f4;background:rgba(66,133,244,0.06)}
+.ai-btn.gemini:hover,.ai-btn.gemini:active{background:rgba(66,133,244,0.15);box-shadow:0 0 12px rgba(66,133,244,0.2)}
 </style>
 </head>
 <body>
@@ -614,8 +636,38 @@ function renderThumbs(vid){
 function renderTitles(title,channel){
   const clean=(title||'this topic').replace(/[|#@*]/g,'').trim();
   const ch=channel||'your channel';const w=clean.split(' ');
-  const v=[`${clean} — Nobody Told You This`,`Stop Doing This With ${w.slice(0,4).join(' ')} (Do THIS Instead)`,`I Discovered The Truth About ${clean} And It Changed Everything`,`Why ${w.slice(0,5).join(' ')} Is NOT What You Think`,`The ${w.slice(0,4).join(' ')} Secret That Went Viral For A Reason`];
-  document.getElementById('titles-body').textContent=`ORIGINAL TITLE:\n${title||'[not found]'}\n\n${'━'.repeat(42)}\n5 VIRAL CTR-OPTIMIZED TITLE VARIANTS\n${'━'.repeat(42)}\n\n[01] ${v[0]}\n\n[02] ${v[1]}\n\n[03] ${v[2]}\n\n[04] ${v[3]}\n\n[05] ${v[4]}\n\n${'━'.repeat(42)}\nCHANNEL: ${ch}\nTIP: Keep titles under 60 characters for full display.`;
+  const v=[
+    `${clean} — Nobody Told You This`,
+    `Stop Doing This With ${w.slice(0,4).join(' ')} (Do THIS Instead)`,
+    `I Discovered The Truth About ${clean} And It Changed Everything`,
+    `Why ${w.slice(0,5).join(' ')} Is NOT What You Think`,
+    `The ${w.slice(0,4).join(' ')} Secret That Went Viral For A Reason`
+  ];
+  const aiButtons=`<div class="ai-btns">
+    <button class="ai-btn chatgpt" onclick="openAI('chatgpt',document.getElementById('titles-body-all').innerText)">ChatGPT</button>
+    <button class="ai-btn grok" onclick="openAI('grok',document.getElementById('titles-body-all').innerText)">Grok</button>
+    <button class="ai-btn claude" onclick="openAI('claude',document.getElementById('titles-body-all').innerText)">Claude</button>
+    <button class="ai-btn gemini" onclick="openAI('gemini',document.getElementById('titles-body-all').innerText)">Gemini</button>
+  </div>`;
+  const html=`
+    <div class="out-card-sub">
+      <div class="sub-label">ORIGINAL TITLE</div>
+      <div class="sub-row">
+        <span class="sub-val">${escH(title||'[not found]')}</span>
+        <button class="mini-copy" onclick="copyText('${escAttr(title||'')}')" >COPY</button>
+      </div>
+    </div>
+    <div class="out-card-sub" style="margin-top:12px">
+      <div class="sub-label">5 VIRAL CTR-OPTIMIZED TITLES</div>
+      ${v.map((t,i)=>`<div class="sub-row title-row">
+        <span class="sub-val">${escH(t)}</span>
+        <button class="mini-copy" onclick="copyText('${escAttr(t)}')" >COPY</button>
+      </div>`).join('')}
+    </div>
+    <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text3);margin-top:10px;letter-spacing:1px">CHANNEL: ${escH(ch)} // TIP: Keep titles under 60 chars</div>
+    <div id="titles-body-all" style="display:none">${escH(v.join('\n'))}</div>
+    ${aiButtons}`;
+  document.getElementById('titles-body').innerHTML=html;
 }
 
 // ── Render Thumb Prompt ──
@@ -623,6 +675,13 @@ function renderThumbPrompt(title,vid){
   const clean=(title||'video topic').replace(/[|#@*]/g,'').trim();
   const ref=`https://img.youtube.com/vi/${vid}/maxresdefault.jpg`;
   document.getElementById('thumbprompt-body').textContent=`REFERENCE THUMBNAIL:\n${ref}\n\n${'━'.repeat(42)}\nAI IMAGE GENERATION PROMPT\n(Midjourney / DALL-E / Ideogram / Firefly)\n${'━'.repeat(42)}\n\nUse the provided reference thumbnail only as inspiration for the overall visual style, emotional impact, composition, and storytelling and create a thumbnail. Do NOT recreate, trace, or closely imitate the original image. Create a completely new thumbnail with its own scene, character pose, facial expression, background, lighting, camera angle, and visual details while preserving the same emotional intensity and click-worthy appeal.\n\nThe new thumbnail should capture the same vibe and psychological impact as the reference — strong eye contact, cinematic realism, dramatic lighting, high contrast, shallow depth of field, bold visual hierarchy, and a clean composition that immediately grabs attention.\n\nVIDEO TOPIC: "${clean}"\n\nMaintain the same level of professionalism and YouTube CTR optimization, but ensure the result is 100% original:\n\n• Different character appearance and clothing\n• Different pose and camera framing\n• Different environment/background\n• Different props and supporting details\n• Different color distribution while keeping a similar cinematic mood\n• Different facial expression that conveys the same emotion\n\nThe thumbnail should feel like it belongs to the same successful design style, not like a duplicate. Viewers should recognize the familiar aesthetic without confusing it for the original image.\n\nStyle: Ultra-realistic photography, 16:9 aspect ratio, 1280×720px, YouTube-optimized.`;
+  const tpAI=`<div class="ai-btns" style="margin-top:10px">
+    <button class="ai-btn chatgpt" onclick="openAI('chatgpt',document.getElementById('thumbprompt-body').innerText)">ChatGPT</button>
+    <button class="ai-btn grok" onclick="openAI('grok',document.getElementById('thumbprompt-body').innerText)">Grok</button>
+    <button class="ai-btn claude" onclick="openAI('claude',document.getElementById('thumbprompt-body').innerText)">Claude</button>
+    <button class="ai-btn gemini" onclick="openAI('gemini',document.getElementById('thumbprompt-body').innerText)">Gemini</button>
+  </div>`;
+  document.getElementById('thumbprompt-body').insertAdjacentHTML('afterend',tpAI);
 }
 
 // ── Render Script ──
@@ -630,6 +689,13 @@ function renderScript(title,channel){
   const clean=(title||'this topic').replace(/[|#@*]/g,'').trim();
   const ch=channel||'your channel';
   document.getElementById('script-body').textContent=`TOPIC: "${clean}"\nCHANNEL: "${ch}"\n\n${'━'.repeat(42)}\nSTRICT REQUIREMENTS — READ EVERY RULE:\n${'━'.repeat(42)}\n\n1. LENGTH: 15 to 20 minutes of spoken content\n   (3,500 to 4,500 words at natural speaking pace)\n\n2. ZERO AI VOCABULARY — these words are BANNED:\n   delve, tapestry, crucial, leverage, paramount, utilize,\n   comprehensive, multifaceted, pivotal, foster, underscore,\n   navigate, align, synergy, robust, scalable, streamline,\n   in conclusion, furthermore, moreover, subsequently,\n   it is worth noting, it is important to note\n\n3. WRITE LIKE A REAL HUMAN STORYTELLER:\n   - Write exactly how a passionate person talks to a close friend\n   - Short sentences. Punchy. Then a longer one for rhythm.\n   - Use contractions always: you\'re, it\'s, I\'ve, don\'t, they\'ll\n   - Real phrases: "here\'s the thing", "look", "honestly",\n     "I\'m not gonna lie", "right?", "nobody talks about this"\n   - Pause moments: "..." or "Think about that for a second."\n   - Talk directly TO the viewer: "You\'ve probably felt this."\n\n4. EMOTIONAL STRUCTURE:\n\n   [COLD OPEN — 0:00 to 0:45] ~150 words\n   Start in the middle of a story or drop a shocking statement.\n   No greetings. No channel intro. Just start.\n   End with a question or cliffhanger.\n\n   [HOOK & PROMISE — 0:45 to 2:00] ~250 words\n   Tell them exactly what they will discover.\n   Make a bold promise. Acknowledge their pain point.\n   Tease the most emotional moment coming later.\n\n   [MAIN STORY — 2:00 to 14:00] ~2,800 words\n   Break into 4-5 emotionally distinct chapters.\n   Each chapter: setup → conflict → turn → emotion.\n   Use real stories, vivid details, sensory language.\n   Add mid-roll CTA at minute 7-8:\n   "If this is hitting different for you right now, drop a comment.\n   Have you ever felt this way? I read every single one."\n\n   [EMOTIONAL PEAK — 14:00 to 16:30] ~600 words\n   The most powerful moment. The revelation nobody says out loud.\n   Write this so honest it could make someone tear up.\n\n   [OUTRO & CTA — 16:30 to end] ~400 words\n   Land the message. 3 key takeaways in plain human language.\n   End with something they will remember.\n   "If this video made you feel something — that\'s exactly what\n   this channel is for. Hit subscribe so you don\'t miss what\'s next."\n\n5. TONE: Raw, honest, emotionally intelligent, deeply human\n6. FORMAT: Continuous prose — NO scene labels, NO [brackets]\n7. PACING: Written for voiceover or AI avatar delivery\n\nWrite the complete full-length script now. Do not skip sections.`;
+  const scAI=`<div class="ai-btns" style="margin-top:10px">
+    <button class="ai-btn chatgpt" onclick="openAI('chatgpt',document.getElementById('script-body').innerText)">ChatGPT</button>
+    <button class="ai-btn grok" onclick="openAI('grok',document.getElementById('script-body').innerText)">Grok</button>
+    <button class="ai-btn claude" onclick="openAI('claude',document.getElementById('script-body').innerText)">Claude</button>
+    <button class="ai-btn gemini" onclick="openAI('gemini',document.getElementById('script-body').innerText)">Gemini</button>
+  </div>`;
+  document.getElementById('script-body').insertAdjacentHTML('afterend',scAI);
 }
 
 // ── Render SEO ──
@@ -643,7 +709,28 @@ function renderSEO(title,channel){
   const tags=[k1,k2,k3,`${k1} ${k2}`,`${k1} story`,`${k1} truth`,`${k2} ${k3}`,`real ${k1}`,`${k1} 2026`,`${k2} explained`,`${k1} facts`,`viral ${k1}`,`${k3} ${k1}`,`${k1} reaction`,ch.toLowerCase().replace(/\s/g,'')].filter((v,i,a)=>a.indexOf(v)===i).slice(0,15);
   const htags=[`#${k1.replace(/\s/g,'')}`,`#${k2.replace(/\s/g,'')}`,`#${k3.replace(/\s/g,'')}`,`#YouTube`,`#Viral`,`#${k1.replace(/\s/g,'')}Story`,`#YouTubeGrowth`,`#Trending2026`,`#${ch.replace(/\s/g,'')}`];
   const desc=`${clean} — the full story, finally told.\n\nIn this video, I'm breaking down everything about ${clean} that nobody else is saying out loud.\n\nWhat you'll discover:\n▶ The real truth behind ${clean}\n▶ What actually happened and why it matters\n▶ The part everyone gets completely wrong\n▶ What you can take away from this today\n\nIf this video hits different for you — leave a comment. I read every single one.\n\n👍 Like if this made you feel something\n🔔 Subscribe: https://youtube.com/@${ch.replace(/\s/g,'')}\n💬 Drop your thoughts below\n\n${htags.join(' ')}`;
-  document.getElementById('seo-body').textContent=`TOPIC: "${clean}" // CHANNEL: ${ch}\n${'━'.repeat(42)}\n\n[5 VIRAL TITLE VARIANTS]\n${'─'.repeat(40)}\n[01] ${titles[0]}\n[02] ${titles[1]}\n[03] ${titles[2]}\n[04] ${titles[3]}\n[05] ${titles[4]}\n\n${'━'.repeat(42)}\n[META DESCRIPTION + HASHTAGS]\n${'─'.repeat(40)}\n${desc}\n\n${'━'.repeat(42)}\n[TAGS — ${tags.length} TOTAL]\n${'─'.repeat(40)}\n${tags.join(', ')}`;
+  const aiButtons=`<div class="ai-btns">
+    <button class="ai-btn chatgpt" onclick="openAI('chatgpt',document.getElementById('seo-all').innerText)">ChatGPT</button>
+    <button class="ai-btn grok" onclick="openAI('grok',document.getElementById('seo-all').innerText)">Grok</button>
+    <button class="ai-btn claude" onclick="openAI('claude',document.getElementById('seo-all').innerText)">Claude</button>
+    <button class="ai-btn gemini" onclick="openAI('gemini',document.getElementById('seo-all').innerText)">Gemini</button>
+  </div>`;
+  const seoHtml=`
+    <div class="out-card-sub">
+      <div class="sub-label">5 VIRAL TITLE VARIANTS</div>
+      ${titles.map(t=>`<div class="sub-row"><span class="sub-val">${escH(t)}</span><button class="mini-copy" onclick="copyText('${escAttr(t)}')">COPY</button></div>`).join('')}
+    </div>
+    <div class="out-card-sub" style="margin-top:12px">
+      <div class="sub-label">META DESCRIPTION + HASHTAGS <button class="mini-copy" onclick="copyText('${escAttr(desc)}')">COPY ALL</button></div>
+      <div class="sub-val" style="white-space:pre-wrap;line-height:1.8;font-size:11px;color:var(--text)">${escH(desc)}</div>
+    </div>
+    <div class="out-card-sub" style="margin-top:12px">
+      <div class="sub-label">TAGS — ${tags.length} TOTAL <button class="mini-copy" onclick="copyText('${escAttr(tags.join(', '))}')">COPY ALL</button></div>
+      <div class="sub-val" style="color:var(--text2)">${escH(tags.join(', '))}</div>
+    </div>
+    <div id="seo-all" style="display:none">${escH(titles.join('\n')+'\n\n'+desc+'\n\nTAGS: '+tags.join(', '))}</div>
+    ${aiButtons}`;
+  document.getElementById('seo-body').innerHTML=seoHtml;
 }
 
 // ── History ──
@@ -829,6 +916,31 @@ function doCopyText(btn){const body=btn.closest('.out-card,.batch-result').query
 });
 document.getElementById('steal-url').addEventListener('keydown',e=>{if(e.key==='Enter')runSteal();});
 document.getElementById('batch-urls').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.ctrlKey)runBatch();});
+
+// Copy text helper
+function copyText(txt){
+  navigator.clipboard.writeText(txt).then(()=>setStatus('✓ Copied!','r')).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);setStatus('✓ Copied!','r');
+  });
+}
+
+// Escape for HTML attribute
+function escAttr(t){return(t||'').replace(/'/g,"&#39;").replace(/"/g,'&quot;');}
+
+// Open AI apps
+function openAI(app,text){
+  const encoded=encodeURIComponent(text||'');
+  const urls={
+    chatgpt:'https://chat.openai.com/',
+    grok:'https://grok.x.ai/',
+    claude:'https://claude.ai/new',
+    gemini:'https://gemini.google.com/app'
+  };
+  // Copy text to clipboard first then open app
+  navigator.clipboard.writeText(text||'').catch(()=>{});
+  window.open(urls[app],'_blank');
+  setStatus('✓ Prompt copied! Paste it in '+app.charAt(0).toUpperCase()+app.slice(1),'r');
+}
 </script>
 </body>
 </html>
