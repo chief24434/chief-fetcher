@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>CHIEF'S FETCHER — YouTube Creator Suite</title>
+<meta name="description" content="CHIEF'S FETCHER — Free YouTube creator tools. Download thumbnails, generate viral titles, SEO packs, script prompts and more. No API required.">
+<meta property="og:title" content="CHIEF'S FETCHER — YouTube Creator Suite"/>
+<meta property="og:description" content="Free YouTube creator tools — thumbnails, titles, SEO, scripts. No API required."/>
+<meta property="og:type" content="website"/>
+<meta name="theme-color" content="#00f5ff"/>
+<link rel="icon" type="image/png" href="logo.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--neon:#00f5ff;--neon2:#bf00ff;--neon3:#ff0080;--neon4:#00ff88;
+--bg:#020408;--bg2:#040810;--bg3:#060d18;
+--border:rgba(0,245,255,0.18);--border2:rgba(191,0,255,0.15);
+--text:#e0f4ff;--text2:#8ab4c8;--text3:#4a6a7a;
+--red:#ff3366;--amber:#ffaa00;--green:#00ff88;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:16px;min-height:100vh;overflow-x:hidden;cursor:none}
+
+/* BG */
+#bg-layer{display:none}
+#scanlines{position:fixed;inset:0;pointer-events:none;z-index:9990;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.06) 2px,rgba(0,0,0,0.06) 4px)}
+#grid{position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(0,245,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,255,0.02) 1px,transparent 1px);background-size:60px 60px}
+#mouse-glow{position:fixed;width:500px;height:500px;border-radius:50%;pointer-events:none;z-index:1;background:radial-gradient(circle,rgba(0,245,255,0.045) 0%,rgba(191,0,255,0.02) 40%,transparent 70%);transform:translate(-50%,-50%);transition:left 0.08s,top 0.08s}
+#particles{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.pt{position:absolute;border-radius:50%;animation:ptf linear infinite;opacity:0}
+@keyframes ptf{0%{transform:translateY(100vh) translateX(0);opacity:0}10%{opacity:1}90%{opacity:0.3}100%{transform:translateY(-10vh) translateX(var(--d));opacity:0}}
+
+/* Cursor — desktop only */
+#cursor{position:fixed;width:20px;height:20px;pointer-events:none;z-index:9999;transform:translate(-50%,-50%)}
+#cursor::before{content:'';position:absolute;inset:0;border:1.5px solid var(--neon);border-radius:50%;animation:cpulse 2s ease infinite}
+#cursor::after{content:'';position:absolute;top:50%;left:50%;width:4px;height:4px;background:var(--neon);border-radius:50%;transform:translate(-50%,-50%)}
+@keyframes cpulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.3);opacity:0.5}}
+
+/* Page corners */
+.pc{position:fixed;width:50px;height:50px;pointer-events:none;z-index:5}
+.pc-tl{top:0;left:0;border-top:1px solid rgba(0,245,255,0.2);border-left:1px solid rgba(0,245,255,0.2)}
+.pc-tr{top:0;right:0;border-top:1px solid rgba(0,245,255,0.2);border-right:1px solid rgba(0,245,255,0.2)}
+.pc-bl{bottom:0;left:0;border-bottom:1px solid rgba(0,245,255,0.2);border-left:1px solid rgba(0,245,255,0.2)}
+.pc-br{bottom:0;right:0;border-bottom:1px solid rgba(0,245,255,0.2);border-right:1px solid rgba(0,245,255,0.2)}
+
+/* HUD */
+.hud-tr{position:fixed;top:16px;right:16px;z-index:100;text-align:right}
+.hud-clock{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text3);letter-spacing:2px}
+.hud-online{font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(0,255,136,0.5);letter-spacing:2px;margin-top:2px}
+
+/* Menu Button */
+#menu-btn{position:fixed;top:16px;left:16px;z-index:9000;width:42px;height:42px;background:rgba(0,245,255,0.06);border:1px solid var(--border);border-radius:3px;cursor:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;transition:all 0.3s;-webkit-tap-highlight-color:transparent}
+#menu-btn:hover,#menu-btn:active{background:rgba(0,245,255,0.12);border-color:var(--neon);box-shadow:0 0 20px rgba(0,245,255,0.2)}
+.bar{width:20px;height:2px;background:var(--neon);border-radius:1px;transition:all 0.3s}
+#menu-btn.open .bar:nth-child(1){transform:translateY(7px) rotate(45deg)}
+#menu-btn.open .bar:nth-child(2){opacity:0}
+#menu-btn.open .bar:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
+/* Side Menu */
+#side-menu{position:fixed;top:0;left:-310px;width:290px;height:100vh;background:rgba(2,4,8,0.98);border-right:1px solid var(--border);z-index:8999;transition:left 0.35s cubic-bezier(0.4,0,0.2,1);overflow-y:auto;backdrop-filter:blur(20px)}
+#side-menu.open{left:0}
+#side-menu::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--neon),transparent)}
+.menu-header{padding:20px 16px;border-bottom:1px solid rgba(0,245,255,0.08);display:flex;align-items:center;gap:10px}
+.menu-header-logo{width:32px;height:32px;object-fit:contain;filter:drop-shadow(0 0 6px rgba(0,245,255,0.5))}
+.menu-logo-txt{font-family:'Silkscreen',cursive;font-size:12px;font-weight:700;color:var(--neon);letter-spacing:2px}
+.menu-sub{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:2px;margin-top:2px}
+.menu-sec{padding:12px 16px 4px}
+.menu-sec-title{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--neon);letter-spacing:3px;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.menu-sec-title::after{content:'';flex:1;height:1px;background:rgba(0,245,255,0.08)}
+.menu-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:3px;cursor:none;transition:all 0.2s;margin-bottom:3px;border:1px solid transparent;-webkit-tap-highlight-color:transparent}
+.menu-item:hover,.menu-item:active{background:rgba(0,245,255,0.06);border-color:rgba(0,245,255,0.12)}
+.menu-item.active{background:rgba(0,245,255,0.08);border-color:var(--neon)}
+.menu-icon{width:28px;height:28px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.mi-c{background:rgba(0,245,255,0.1);border:1px solid rgba(0,245,255,0.2)}
+.mi-p{background:rgba(191,0,255,0.1);border:1px solid rgba(191,0,255,0.2)}
+.mi-g{background:rgba(0,255,136,0.1);border:1px solid rgba(0,255,136,0.2)}
+.mi-a{background:rgba(255,170,0,0.1);border:1px solid rgba(255,170,0,0.2)}
+.mi-r{background:rgba(255,51,102,0.1);border:1px solid rgba(255,51,102,0.2)}
+.menu-item-txt{flex:1}
+.menu-item-name{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text);line-height:1}
+.menu-item-desc{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text3);margin-top:2px}
+.mbadge{font-family:'Share Tech Mono',monospace;font-size:8px;padding:2px 5px;border-radius:2px;letter-spacing:1px;flex-shrink:0}
+.b-free{background:rgba(0,255,136,0.1);border:1px solid rgba(0,255,136,0.3);color:var(--green)}
+.b-soon{background:rgba(255,51,102,0.1);border:1px solid rgba(255,51,102,0.3);color:var(--red)}
+.b-new{background:rgba(255,170,0,0.1);border:1px solid rgba(255,170,0,0.3);color:var(--amber)}
+.menu-footer{padding:14px 16px;border-top:1px solid rgba(0,245,255,0.08);margin-top:8px}
+.menu-footer-txt{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:1px;line-height:1.8}
+
+/* Overlay */
+#overlay{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:8998;opacity:0;pointer-events:none;transition:opacity 0.3s}
+#overlay.show{opacity:1;pointer-events:all}
+
+/* Canvas */
+#web-canvas{position:fixed;inset:0;pointer-events:none;z-index:500}
+#url-grabber{position:fixed;pointer-events:none;z-index:600;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--neon);background:rgba(0,4,8,0.9);border:1px solid var(--neon);padding:3px 8px;white-space:nowrap;box-shadow:0 0 12px rgba(0,245,255,0.4);display:none;letter-spacing:1px;transform:translate(-50%,-100%)}
+
+/* Main */
+.container{max-width:960px;margin:0 auto;padding:0 16px;position:relative;z-index:10}
+
+/* Header */
+header{text-align:center;padding:60px 16px 30px;position:relative;z-index:10}
+.spider-wrap{display:flex;justify-content:center;margin:0 0 16px}
+.spider-svg{width:130px;height:130px;animation:sbreathe 4s ease-in-out infinite}
+@keyframes sbreathe{0%,100%{filter:drop-shadow(0 0 8px var(--neon)) drop-shadow(0 0 20px rgba(0,245,255,0.3))}50%{filter:drop-shadow(0 0 18px var(--neon)) drop-shadow(0 0 45px rgba(0,245,255,0.5))}}
+.ring1{animation:rr 6s linear infinite;transform-origin:65px 65px}
+.ring2{animation:rr 10s linear infinite reverse;transform-origin:65px 65px}
+.ring3{animation:rr 15s linear infinite;transform-origin:65px 65px}
+@keyframes rr{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.pdot{animation:pdot 2s ease-in-out infinite}
+@keyframes pdot{0%,100%{r:2.5;opacity:1}50%{r:5;opacity:0.5}}
+.site-name{font-family:'Silkscreen',cursive;font-size:clamp(20px,5vw,38px);font-weight:700;color:var(--neon);letter-spacing:3px;text-shadow:0 0 20px rgba(0,245,255,0.4),0 0 40px rgba(0,245,255,0.2);margin-bottom:6px}
+.site-sub{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:5px;color:var(--text2);text-transform:uppercase;margin-bottom:8px}
+.version-badge{display:inline-block;padding:3px 12px;border:1px solid var(--neon);border-radius:2px;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--neon);letter-spacing:3px}
+
+/* Mode Tabs */
+.mode-tabs{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:20px 0 0}
+.mode-tab{padding:7px 16px;background:transparent;border:1px solid rgba(0,245,255,0.15);border-radius:2px;color:var(--text3);font-family:'Share Tech Mono',monospace;font-size:10px;cursor:none;transition:all 0.2s;letter-spacing:1px;-webkit-tap-highlight-color:transparent}
+.mode-tab.active{border-color:var(--neon);color:var(--neon);background:rgba(0,245,255,0.06)}
+.mode-tab:hover{border-color:rgba(0,245,255,0.3);color:var(--text2)}
+
+/* Panels */
+.mode-panel{display:none}.mode-panel.active{display:block}
+
+/* Cards */
+.card{background:linear-gradient(135deg,rgba(0,245,255,0.04),rgba(191,0,255,0.03));border:1px solid var(--border);border-radius:4px;padding:24px;margin-bottom:20px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--neon),transparent)}
+.card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--neon2),transparent)}
+.card-corner{position:absolute;width:14px;height:14px;border-color:var(--neon);border-style:solid}
+.cc-tl{top:0;left:0;border-width:2px 0 0 2px}.cc-tr{top:0;right:0;border-width:2px 2px 0 0}
+.cc-bl{bottom:0;left:0;border-width:0 0 2px 2px}.cc-br{bottom:0;right:0;border-width:0 2px 2px 0}
+.sec-label{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--neon);letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.sec-label::before{content:'';width:16px;height:1px;background:var(--neon)}
+.sec-label::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)}
+
+/* Inputs */
+.input-row{display:flex;gap:10px;align-items:stretch;flex-wrap:wrap;margin-bottom:10px}
+.iw{flex:1;min-width:180px;position:relative}
+.ipfx{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--neon);opacity:0.6;pointer-events:none}
+.inp{width:100%;padding:13px 13px 13px 40px;background:rgba(0,245,255,0.04);border:1px solid var(--border);border-radius:3px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:12px;outline:none;transition:all 0.3s;-webkit-appearance:none}
+.inp::placeholder{color:var(--text3)}
+.inp:focus{border-color:var(--neon);background:rgba(0,245,255,0.07);box-shadow:0 0 0 2px rgba(0,245,255,0.08)}
+.inp-full{padding-left:13px}
+textarea.inp{resize:vertical;min-height:80px;padding-left:13px;line-height:1.7}
+.btn{padding:13px 22px;background:transparent;border:1px solid var(--neon);border-radius:3px;color:var(--neon);font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;cursor:none;white-space:nowrap;transition:all 0.3s;position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent}
+.btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--neon),var(--neon2));opacity:0;transition:opacity 0.3s}
+.btn:hover::before,.btn:active::before{opacity:1}
+.btn span{position:relative;z-index:1}
+.btn:hover,.btn:active{color:#000;box-shadow:0 0 28px rgba(0,245,255,0.4);transform:translateY(-1px)}
+.btn:disabled{opacity:0.4;pointer-events:none}
+.btn-full{width:100%;text-align:center;margin-top:4px}
+.btn-purple{border-color:var(--neon2);color:var(--neon2)}
+.btn-purple::before{background:linear-gradient(135deg,var(--neon2),var(--neon))}
+.btn-purple:hover,.btn-purple:active{color:#000;box-shadow:0 0 28px rgba(191,0,255,0.4)}
+.btn-green{border-color:var(--green);color:var(--green)}
+.btn-green::before{background:linear-gradient(135deg,var(--green),var(--neon))}
+.btn-green:hover,.btn-green:active{color:#000;box-shadow:0 0 28px rgba(0,255,136,0.4)}
+
+/* Status */
+#status-wrap{text-align:center;min-height:28px;margin:8px 0}
+.smsg{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;animation:sfade 0.3s ease}
+@keyframes sfade{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+.sr{color:var(--green)}.sb{color:var(--neon)}.se{color:var(--red)}
+
+/* Loading spinner */
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(0,245,255,0.2);border-top-color:var(--neon);border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Pills */
+.pills{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:20px}
+.pill{padding:5px 12px;background:rgba(0,245,255,0.03);border:1px solid rgba(0,245,255,0.1);border-radius:20px;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:1px;cursor:none;transition:all 0.2s;-webkit-tap-highlight-color:transparent}
+.pill:hover{border-color:var(--neon);color:var(--neon)}
+
+/* Results */
+#results-section{display:none;margin-top:24px}
+
+/* Video info card */
+.vid-card{background:rgba(0,245,255,0.03);border:1px solid var(--border);border-radius:4px;margin-bottom:20px;overflow:hidden}
+.vid-card-top{background:rgba(0,245,255,0.07);padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.vid-card-title{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;color:var(--neon);flex:1;letter-spacing:1px;line-height:1.4}
+.copy-title-btn{padding:5px 12px;background:transparent;border:1px solid rgba(0,245,255,0.3);border-radius:2px;color:var(--neon2);font-family:'Share Tech Mono',monospace;font-size:9px;cursor:none;transition:all 0.2s;letter-spacing:1px;-webkit-tap-highlight-color:transparent;flex-shrink:0}
+.copy-title-btn:hover,.copy-title-btn:active{background:rgba(191,0,255,0.1);border-color:var(--neon2)}
+.vid-card-body{display:flex;gap:14px;padding:14px;flex-wrap:wrap}
+.vid-thumb{flex-shrink:0;border:1px solid rgba(0,245,255,0.15);border-radius:3px;overflow:hidden}
+.vid-thumb img{width:180px;display:block}
+.vid-meta{flex:1;min-width:160px}
+.meta-row{display:flex;gap:8px;align-items:flex-start;margin-bottom:7px}
+.meta-lbl{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:2px;flex-shrink:0;width:64px;margin-top:1px}
+.meta-val{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text2);word-break:break-all;line-height:1.4}
+
+/* Tabs */
+.out-tabs{display:flex;gap:0;flex-wrap:wrap;border-bottom:1px solid rgba(0,245,255,0.15)}
+.out-tab{padding:8px 14px;background:transparent;border:1px solid rgba(0,245,255,0.1);border-bottom:none;color:var(--text3);font-family:'Share Tech Mono',monospace;font-size:9px;cursor:none;transition:all 0.2s;letter-spacing:1px;margin-bottom:-1px;-webkit-tap-highlight-color:transparent}
+.out-tab.active{border-color:var(--neon);border-bottom-color:var(--bg);color:var(--neon);background:rgba(0,245,255,0.06)}
+.out-tab:hover{color:var(--text2);border-color:rgba(0,245,255,0.2)}
+.out-panel{display:none;background:rgba(0,0,0,0.45);border:1px solid rgba(0,245,255,0.12);border-top:none;border-radius:0 0 4px 4px;padding:18px}
+.out-panel.active{display:block}
+.out-card{margin-bottom:12px;background:rgba(0,245,255,0.02);border:1px solid rgba(0,245,255,0.1);border-radius:3px;overflow:hidden}
+.out-card-hdr{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(0,245,255,0.04);border-bottom:1px solid rgba(0,245,255,0.08);flex-wrap:wrap;gap:6px}
+.out-card-title{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--neon);text-transform:uppercase}
+.copy-btn{padding:3px 9px;background:transparent;border:1px solid rgba(0,245,255,0.2);border-radius:2px;color:var(--neon2);font-family:'Share Tech Mono',monospace;font-size:9px;cursor:none;transition:all 0.2s;-webkit-tap-highlight-color:transparent}
+.copy-btn:hover,.copy-btn:active{background:rgba(191,0,255,0.1);border-color:var(--neon2)}
+.out-body{padding:12px;font-family:'Share Tech Mono',monospace;font-size:11px;line-height:1.9;color:var(--text);white-space:pre-wrap;word-break:break-word;max-height:480px;overflow-y:auto}
+
+/* Thumbnails */
+.thumb-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+.thumb-item{border:1px solid rgba(0,245,255,0.12);border-radius:3px;overflow:hidden;transition:all 0.3s}
+.thumb-item:hover{border-color:var(--neon);box-shadow:0 0 14px rgba(0,245,255,0.15)}
+.thumb-item img{width:100%;display:block}
+.thumb-info{padding:5px 8px;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text3);background:rgba(0,0,0,0.4);border-top:1px solid rgba(0,245,255,0.08)}
+.thumb-dl{display:block;width:100%;padding:6px;background:rgba(0,245,255,0.05);border:none;border-top:1px solid rgba(0,245,255,0.08);color:var(--neon);font-family:'Share Tech Mono',monospace;font-size:9px;cursor:none;transition:all 0.2s;text-align:center;text-decoration:none;letter-spacing:1px;-webkit-tap-highlight-color:transparent}
+.thumb-dl:hover,.thumb-dl:active{background:rgba(0,245,255,0.12)}
+
+/* History */
+#history-section{display:none;margin-top:24px}
+.history-item{background:rgba(0,245,255,0.02);border:1px solid rgba(0,245,255,0.1);border-radius:3px;padding:10px 14px;margin-bottom:8px;cursor:none;transition:all 0.2s;display:flex;align-items:center;gap:10px;-webkit-tap-highlight-color:transparent}
+.history-item:hover{border-color:var(--neon);background:rgba(0,245,255,0.05)}
+.history-thumb{width:60px;height:34px;object-fit:cover;border-radius:2px;flex-shrink:0}
+.history-meta{flex:1;min-width:0}
+.history-title{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.history-ch{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text3);margin-top:2px}
+.history-time{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text3);flex-shrink:0}
+.history-load-btn{padding:3px 8px;background:transparent;border:1px solid rgba(0,245,255,0.2);color:var(--neon2);font-family:'Share Tech Mono',monospace;font-size:9px;cursor:none;transition:all 0.2s;flex-shrink:0;-webkit-tap-highlight-color:transparent}
+.history-load-btn:hover{background:rgba(191,0,255,0.1)}
+
+/* Word scanner */
+.scanner-out{font-family:'Share Tech Mono',monospace;font-size:12px;line-height:1.9;padding:12px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,245,255,0.1);border-radius:3px;min-height:100px;max-height:400px;overflow-y:auto;word-break:break-word}
+.w-bad{background:rgba(255,51,102,0.3);color:var(--red);padding:0 2px;border-radius:2px;font-weight:bold}
+.w-ok{color:var(--text)}
+.scan-stats{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px}
+.scan-stat{background:rgba(0,245,255,0.04);border:1px solid rgba(0,245,255,0.1);border-radius:3px;padding:6px 12px;font-family:'Share Tech Mono',monospace;font-size:10px}
+.scan-stat span{color:var(--neon);font-size:13px;display:block;margin-top:2px}
+
+/* Batch */
+.batch-url-list{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.batch-result{background:rgba(0,245,255,0.02);border:1px solid rgba(0,245,255,0.1);border-radius:3px;margin-bottom:10px;overflow:hidden}
+.batch-result-hdr{padding:8px 12px;background:rgba(0,245,255,0.05);border-bottom:1px solid rgba(0,245,255,0.08);font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--neon);display:flex;align-items:center;justify-content:space-between}
+.batch-result-body{padding:12px;font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text);white-space:pre-wrap;word-break:break-word;max-height:300px;overflow-y:auto}
+
+/* Steal mode */
+.steal-out{font-family:'Share Tech Mono',monospace;font-size:11px;line-height:1.9;color:var(--text);white-space:pre-wrap;word-break:break-word;max-height:500px;overflow-y:auto;padding:12px;background:rgba(0,0,0,0.4);border:1px solid rgba(191,0,255,0.15);border-radius:3px}
+
+/* Error box */
+.err-box{background:rgba(255,51,102,0.08);border:1px solid rgba(255,51,102,0.25);border-radius:3px;padding:12px;font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--red);line-height:1.7;margin-top:10px}
+
+/* Footer */
+footer{text-align:center;padding:30px 16px 40px;position:relative;z-index:10;margin-top:20px}
+.footer-line{width:160px;height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin:0 auto 12px}
+.footer-txt{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:2px;line-height:1.9}
+.footer-credit{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--neon);letter-spacing:2px;margin-top:6px}
+
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:rgba(0,245,255,0.3);border-radius:2px}
+
+@media(max-width:640px){
+  #side-menu{width:270px;left:-280px}
+  .input-row{flex-direction:column}
+  .btn{width:100%;text-align:center}
+  .out-tab{font-size:8px;padding:6px 8px;letter-spacing:0}
+  .vid-thumb img{width:100%}
+  header{padding:50px 14px 20px}
+  .spider-svg{width:100px;height:100px}
+  .ring1,.ring2,.ring3{transform-origin:50px 50px}
+  .mode-tab{font-size:9px;padding:6px 10px}
+  .card{padding:16px 14px}
+}
+</style>
+</head>
+<body>
+
+<div id="bg-layer"></div>
+<div id="cursor"></div>
+<div id="scanlines"></div>
+<div id="grid"></div>
+<div id="mouse-glow"></div>
+<div id="particles"></div>
+<canvas id="web-canvas"></canvas>
+<div id="url-grabber"></div>
+
+<div class="pc pc-tl"></div><div class="pc pc-tr"></div>
+<div class="pc pc-bl"></div><div class="pc pc-br"></div>
+
+<div class="hud-tr">
+  <div class="hud-clock" id="hud-clock"></div>
+  <div class="hud-online">● ONLINE</div>
+</div>
+
+<button id="menu-btn" onclick="toggleMenu()">
+  <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+</button>
+<div id="overlay" onclick="closeMenu()"></div>
+
+<!-- Side Menu -->
+<div id="side-menu">
+  <div class="menu-header">
+    <img src="logo.png" class="menu-header-logo" onerror="this.style.display='none'"/>
+    <div><div class="menu-logo-txt">CHIEF'S FETCHER</div><div class="menu-sub">v4.0 // Spider AI Core</div></div>
+  </div>
+  <div class="menu-sec">
+    <div class="menu-sec-title">Main Tools</div>
+    <div class="menu-item active" onclick="closeMenu()"><div class="menu-icon mi-c">🔗</div><div class="menu-item-txt"><div class="menu-item-name">Video Extractor</div><div class="menu-item-desc">Title, thumbnails, all tools</div></div><span class="mbadge b-free">FREE</span></div>
+    <div class="menu-item" onclick="closeMenu()"><div class="menu-icon mi-c">🖼</div><div class="menu-item-txt"><div class="menu-item-name">Thumbnail Downloader</div><div class="menu-item-desc">All resolutions incl. 1080p</div></div><span class="mbadge b-free">FREE</span></div>
+    <div class="menu-item" onclick="closeMenu()"><div class="menu-icon mi-p">📌</div><div class="menu-item-txt"><div class="menu-item-name">Title Variants</div><div class="menu-item-desc">5 viral CTR-optimized titles</div></div><span class="mbadge b-free">FREE</span></div>
+    <div class="menu-item" onclick="closeMenu()"><div class="menu-icon mi-a">🎨</div><div class="menu-item-txt"><div class="menu-item-name">Thumbnail Prompt</div><div class="menu-item-desc">Original AI thumbnail brief</div></div><span class="mbadge b-free">FREE</span></div>
+    <div class="menu-item" onclick="closeMenu()"><div class="menu-icon mi-g">📝</div><div class="menu-item-txt"><div class="menu-item-name">Script Prompt</div><div class="menu-item-desc">15-20 min emotional script</div></div><span class="mbadge b-free">FREE</span></div>
+    <div class="menu-item" onclick="closeMenu()"><div class="menu-icon mi-c">📊</div><div class="menu-item-txt"><div class="menu-item-name">SEO Pack</div><div class="menu-item-desc">Titles, description, tags</div></div><span class="mbadge b-free">FREE</span></div>
+  </div>
+  <div class="menu-sec">
+    <div class="menu-sec-title">Power Tools</div>
+    <div class="menu-item" onclick="switchMode('steal');closeMenu()"><div class="menu-icon mi-r">🎯</div><div class="menu-item-txt"><div class="menu-item-name">Steal This Video</div><div class="menu-item-desc">Recreate competitor videos</div></div><span class="mbadge b-new">NEW</span></div>
+    <div class="menu-item" onclick="switchMode('batch');closeMenu()"><div class="menu-icon mi-a">📦</div><div class="menu-item-txt"><div class="menu-item-name">Batch Mode</div><div class="menu-item-desc">Extract 5 URLs at once</div></div><span class="mbadge b-new">NEW</span></div>
+    <div class="menu-item" onclick="switchMode('scanner');closeMenu()"><div class="menu-icon mi-g">🔍</div><div class="menu-item-txt"><div class="menu-item-name">Script Word Scanner</div><div class="menu-item-desc">Detect AI vocabulary</div></div><span class="mbadge b-new">NEW</span></div>
+    <div class="menu-item" onclick="switchMode('history');closeMenu()"><div class="menu-icon mi-c">📋</div><div class="menu-item-txt"><div class="menu-item-name">History</div><div class="menu-item-desc">Previously extracted videos</div></div><span class="mbadge b-free">FREE</span></div>
+  </div>
+  <div class="menu-sec">
+    <div class="menu-sec-title">Coming Soon</div>
+    <div class="menu-item" style="opacity:0.4"><div class="menu-icon mi-p">🎨</div><div class="menu-item-txt"><div class="menu-item-name">AI Image Generator</div><div class="menu-item-desc">SDXL thumbnail generation</div></div><span class="mbadge b-soon">SOON</span></div>
+    <div class="menu-item" style="opacity:0.4"><div class="menu-icon mi-r">📜</div><div class="menu-item-txt"><div class="menu-item-name">Transcript Fetcher</div><div class="menu-item-desc">Full video transcript</div></div><span class="mbadge b-soon">SOON</span></div>
+    <div class="menu-item" style="opacity:0.4"><div class="menu-icon mi-g">📈</div><div class="menu-item-txt"><div class="menu-item-name">Channel Analyzer</div><div class="menu-item-desc">Growth and competitor data</div></div><span class="mbadge b-soon">SOON</span></div>
+  </div>
+  <div class="menu-footer">
+    <div class="menu-footer-txt">CHIEF'S FETCHER © 2026<br>Spider AI Core Technology<br>All tools free — no API required<br><br>📱 +923106206972</div>
+  </div>
+</div>
+
+<!-- Page -->
+<header>
+  <div class="spider-wrap">
+  <div style="position:relative;width:130px;height:130px;display:flex;align-items:center;justify-content:center">
+    <svg style="position:absolute;inset:0;width:130px;height:130px;animation:sbreathe 4s ease-in-out infinite" viewBox="0 0 130 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <g class="ring1"><circle cx="65" cy="65" r="58" stroke="rgba(0,245,255,0.14)" stroke-width="1"/><circle cx="65" cy="7" r="3" fill="#00f5ff" opacity="0.8"/><circle cx="123" cy="65" r="3" fill="#00f5ff" opacity="0.8"/><circle cx="65" cy="123" r="3" fill="#00f5ff" opacity="0.8"/><circle cx="7" cy="65" r="3" fill="#00f5ff" opacity="0.8"/><line x1="65" y1="7" x2="123" y2="65" stroke="rgba(0,245,255,0.07)" stroke-width="0.5"/><line x1="123" y1="65" x2="65" y2="123" stroke="rgba(0,245,255,0.07)" stroke-width="0.5"/><line x1="65" y1="123" x2="7" y2="65" stroke="rgba(0,245,255,0.07)" stroke-width="0.5"/><line x1="7" y1="65" x2="65" y2="7" stroke="rgba(0,245,255,0.07)" stroke-width="0.5"/></g>
+      <g class="ring2"><circle cx="65" cy="65" r="42" stroke="rgba(191,0,255,0.2)" stroke-width="1" stroke-dasharray="5 4"/><circle cx="65" cy="23" r="3.5" fill="#bf00ff" opacity="0.9"/><circle cx="107" cy="65" r="3.5" fill="#bf00ff" opacity="0.9"/><circle cx="65" cy="107" r="3.5" fill="#bf00ff" opacity="0.9"/><circle cx="23" cy="65" r="3.5" fill="#bf00ff" opacity="0.9"/></g>
+      <g class="ring3"><circle cx="65" cy="65" r="27" stroke="rgba(0,255,136,0.2)" stroke-width="1"/><circle cx="65" cy="38" r="2" fill="#00ff88"/><circle cx="92" cy="65" r="2" fill="#00ff88"/><circle cx="65" cy="92" r="2" fill="#00ff88"/><circle cx="38" cy="65" r="2" fill="#00ff88"/></g>
+    </svg>
+    <img src="logo.png" alt="logo" id="logo-img" style="width:70px;height:70px;object-fit:contain;position:relative;z-index:2;filter:drop-shadow(0 0 12px rgba(0,245,255,0.5)) drop-shadow(0 0 24px rgba(191,0,255,0.3));animation:logo-pulse 4s ease-in-out infinite" onerror="this.style.display='none'"/>
+  </div>
+</div>
+  <div class="site-name">CHIEF'S FETCHER</div>
+  <div class="site-sub">YouTube Creator Suite — Spider AI Core v4.0</div>
+  <div class="version-badge">FREE TOOLS // NO API // BUILD:2026</div>
+
+  <!-- Mode Tabs -->
+  <div class="mode-tabs">
+    <button class="mode-tab active" onclick="switchMode('main')">⚡ MAIN</button>
+    <button class="mode-tab" onclick="switchMode('steal')">🎯 STEAL</button>
+    <button class="mode-tab" onclick="switchMode('batch')">📦 BATCH</button>
+    <button class="mode-tab" onclick="switchMode('scanner')">🔍 SCANNER</button>
+    <button class="mode-tab" onclick="switchMode('history')">📋 HISTORY</button>
+  </div>
+</header>
+
+<div class="container">
+
+<!-- ── MAIN MODE ── -->
+<div class="mode-panel active" id="mode-main">
+  <div class="card">
+    <div class="card-corner cc-tl"></div><div class="card-corner cc-tr"></div>
+    <div class="card-corner cc-bl"></div><div class="card-corner cc-br"></div>
+    <div class="sec-label">Target Video</div>
+    <div class="input-row">
+      <div class="iw">
+        <span class="ipfx">›_</span>
+        <input type="url" id="video-url" class="inp" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off" spellcheck="false"/>
+      </div>
+    </div>
+    <div class="input-row">
+      <div class="iw">
+        <span class="ipfx">📡</span>
+        <input type="text" id="channel-name" class="inp" placeholder="Your channel name (personalizes script & titles)..." autocomplete="off" spellcheck="false"/>
+      </div>
+    </div>
+    <button class="btn btn-full" id="extract-btn" onclick="startExtract()"><span>⚡ EXTRACT</span></button>
+    <div id="status-wrap"><div class="smsg sr" id="status-msg">● READY — Paste a YouTube URL and hit EXTRACT</div></div>
+    <div class="pills">
+      <div class="pill">🖼 Thumbnails</div>
+      <div class="pill">📌 Titles</div>
+      <div class="pill">🎨 Thumb Prompt</div>
+      <div class="pill">📝 Script</div>
+      <div class="pill">📊 SEO Pack</div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="results-section">
+    <!-- Video Card -->
+    <div class="vid-card">
+      <div class="vid-card-top">
+        <div class="vid-card-title" id="vi-title">—</div>
+        <button class="copy-title-btn" onclick="copyOriginalTitle()">📋 COPY TITLE</button>
+      </div>
+      <div class="vid-card-body">
+        <div class="vid-thumb"><img id="vi-thumb" src="" alt="thumb"/></div>
+        <div class="vid-meta">
+          <div class="meta-row"><span class="meta-lbl">CHANNEL</span><span class="meta-val" id="vi-ch">—</span></div>
+          <div class="meta-row"><span class="meta-lbl">VIDEO ID</span><span class="meta-val" id="vi-vid">—</span></div>
+          <div class="meta-row"><span class="meta-lbl">URL</span><span class="meta-val" id="vi-url" style="font-size:9px">—</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Output Tabs -->
+    <div class="out-tabs">
+      <button class="out-tab active" data-panel="thumbs" onclick="switchTab(this)">🖼 THUMBS</button>
+      <button class="out-tab" data-panel="titles" onclick="switchTab(this)">📌 TITLES</button>
+      <button class="out-tab" data-panel="thumbprompt" onclick="switchTab(this)">🎨 PROMPT</button>
+      <button class="out-tab" data-panel="script" onclick="switchTab(this)">📝 SCRIPT</button>
+      <button class="out-tab" data-panel="seo" onclick="switchTab(this)">📊 SEO</button>
+    </div>
+    <div class="out-panel active" id="panel-thumbs"><div class="thumb-grid" id="thumb-grid"></div></div>
+    <div class="out-panel" id="panel-titles"><div class="out-card"><div class="out-card-hdr"><div class="out-card-title">5 VIRAL TITLE VARIANTS</div><button class="copy-btn" onclick="doCopy('titles-body')">COPY</button></div><div class="out-body" id="titles-body"></div></div></div>
+    <div class="out-panel" id="panel-thumbprompt"><div class="out-card"><div class="out-card-hdr"><div class="out-card-title">AI THUMBNAIL PROMPT</div><button class="copy-btn" onclick="doCopy('thumbprompt-body')">COPY</button></div><div class="out-body" id="thumbprompt-body"></div></div></div>
+    <div class="out-panel" id="panel-script"><div class="out-card"><div class="out-card-hdr"><div class="out-card-title">SCRIPT PROMPT — 15-20 MIN EMOTIONAL</div><button class="copy-btn" onclick="doCopy('script-body')">COPY</button></div><div class="out-body" id="script-body"></div></div></div>
+    <div class="out-panel" id="panel-seo"><div class="out-card"><div class="out-card-hdr"><div class="out-card-title">COMPLETE SEO PACKAGE</div><button class="copy-btn" onclick="doCopy('seo-body')">COPY</button></div><div class="out-body" id="seo-body"></div></div></div>
+  </div>
+</div>
+
+<!-- ── STEAL MODE ── -->
+<div class="mode-panel" id="mode-steal">
+  <div class="card">
+    <div class="card-corner cc-tl"></div><div class="card-corner cc-tr"></div>
+    <div class="card-corner cc-bl"></div><div class="card-corner cc-br"></div>
+    <div class="sec-label">🎯 Steal This Video Mode</div>
+    <p style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text2);margin-bottom:16px;line-height:1.7">Paste a competitor's viral video URL. Get a complete recreation strategy for your own channel — different angle, same virality.</p>
+    <div class="input-row">
+      <div class="iw"><span class="ipfx">›_</span><input type="url" id="steal-url" class="inp" placeholder="Competitor video URL..." autocomplete="off"/></div>
+    </div>
+    <div class="input-row">
+      <div class="iw"><span class="ipfx">📡</span><input type="text" id="steal-channel" class="inp" placeholder="Your channel name & niche..." autocomplete="off"/></div>
+    </div>
+    <button class="btn btn-purple btn-full" id="steal-btn" onclick="runSteal()"><span>🎯 STEAL & RECREATE</span></button>
+    <div id="steal-status" style="margin-top:8px;text-align:center;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--neon);letter-spacing:2px"></div>
+    <div id="steal-output" style="margin-top:14px"></div>
+  </div>
+</div>
+
+<!-- ── BATCH MODE ── -->
+<div class="mode-panel" id="mode-batch">
+  <div class="card">
+    <div class="card-corner cc-tl"></div><div class="card-corner cc-tr"></div>
+    <div class="card-corner cc-bl"></div><div class="card-corner cc-br"></div>
+    <div class="sec-label">📦 Batch Mode — Up to 5 URLs</div>
+    <p style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text2);margin-bottom:16px;line-height:1.7">Paste up to 5 YouTube URLs (one per line). Get SEO packs for all of them at once.</p>
+    <textarea id="batch-urls" class="inp inp-full" rows="6" placeholder="https://youtube.com/watch?v=xxx&#10;https://youtube.com/watch?v=yyy&#10;https://youtube.com/watch?v=zzz"></textarea>
+    <div style="margin-top:10px">
+      <input type="text" id="batch-channel" class="inp inp-full" placeholder="Your channel name (optional)..." autocomplete="off" style="margin-bottom:10px"/>
+    </div>
+    <button class="btn btn-green btn-full" id="batch-btn" onclick="runBatch()"><span>📦 EXTRACT ALL</span></button>
+    <div id="batch-status" style="margin-top:8px;text-align:center;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--neon);letter-spacing:2px"></div>
+    <div id="batch-output" style="margin-top:14px"></div>
+  </div>
+</div>
+
+<!-- ── SCANNER MODE ── -->
+<div class="mode-panel" id="mode-scanner">
+  <div class="card">
+    <div class="card-corner cc-tl"></div><div class="card-corner cc-tr"></div>
+    <div class="card-corner cc-bl"></div><div class="card-corner cc-br"></div>
+    <div class="sec-label">🔍 Script Word Scanner</div>
+    <p style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text2);margin-bottom:16px;line-height:1.7">Paste your script below. AI-sounding words will be highlighted in red so you can replace them.</p>
+    <textarea id="scanner-input" class="inp inp-full" rows="8" placeholder="Paste your script here..."></textarea>
+    <button class="btn btn-full" style="margin-top:10px" onclick="runScanner()"><span>🔍 SCAN SCRIPT</span></button>
+    <div id="scanner-output" style="margin-top:14px"></div>
+  </div>
+</div>
+
+<!-- ── HISTORY MODE ── -->
+<div class="mode-panel" id="mode-history">
+  <div class="card">
+    <div class="card-corner cc-tl"></div><div class="card-corner cc-tr"></div>
+    <div class="card-corner cc-bl"></div><div class="card-corner cc-br"></div>
+    <div class="sec-label">📋 Extraction History</div>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <button class="btn" style="padding:7px 14px;font-size:9px" onclick="clearHistory()"><span>🗑 CLEAR ALL</span></button>
+    </div>
+    <div id="history-list"><div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text3);text-align:center;padding:30px">No history yet. Extract a video first.</div></div>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<!-- Footer -->
+<footer>
+  <div class="footer-line"></div>
+  <div class="footer-txt">CHIEF'S FETCHER © 2026 — Spider AI Core Technology<br>All tools free — no API key required — Static hosted on Hugging Face</div>
+  <div class="footer-credit">📱 +923106206972</div>
+</footer>
+
+<script>
+// ── Detect device ──
+const isMobile=/Android|iPhone|iPad|iPod|Touch/i.test(navigator.userAgent)||('ontouchstart' in window);
+
+// ── Cursor (desktop only) ──
+const cur=document.getElementById('cursor'),mg=document.getElementById('mouse-glow');
+if(!isMobile){
+  cur.style.display="block";
+  document.body.style.cursor='none';
+  let mx=0,my=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';mg.style.left=mx+'px';mg.style.top=my+'px';});
+}else{
+  document.body.style.cursor='auto';
+  mg.style.display='none';
+  document.querySelectorAll('*').forEach(el=>{el.style.cursor='';});
+}
+
+// ── Particles ──
+const pe=document.getElementById('particles');
+['#00f5ff','#bf00ff','#00ff88','#ff0080'].forEach(c=>{
+  for(let i=0;i<8;i++){
+    const p=document.createElement('div');p.className='pt';
+    p.style.cssText=`left:${Math.random()*100}vw;width:${1+Math.random()*2}px;height:${1+Math.random()*2}px;background:${c};box-shadow:0 0 6px ${c};animation-duration:${10+Math.random()*18}s;animation-delay:${Math.random()*15}s`;
+    p.style.setProperty('--d',(Math.random()*80-40)+'px');pe.appendChild(p);
+  }
+});
+
+// ── Clock ──
+function tick(){document.getElementById('hud-clock').textContent=new Date().toLocaleTimeString('en-US',{hour12:false})+' // '+new Date().toLocaleDateString();}
+setInterval(tick,1000);tick();
+
+// ── Menu ──
+function toggleMenu(){document.getElementById('menu-btn').classList.toggle('open');document.getElementById('side-menu').classList.toggle('open');document.getElementById('overlay').classList.toggle('show');}
+function closeMenu(){document.getElementById('menu-btn').classList.remove('open');document.getElementById('side-menu').classList.remove('open');document.getElementById('overlay').classList.remove('show');}
+
+// ── Mode switching ──
+function switchMode(mode){
+  document.querySelectorAll('.mode-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.mode-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('mode-'+mode).classList.add('active');
+  document.querySelectorAll('.mode-tab').forEach(t=>{if(t.textContent.toLowerCase().includes(mode.substring(0,4)))t.classList.add('active');});
+  if(mode==='history')renderHistory();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── Tabs ──
+function switchTab(btn){
+  document.querySelectorAll('.out-tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.out-panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-'+btn.dataset.panel).classList.add('active');
+}
+
+// ── Copy ──
+function doCopy(id){
+  const el=document.getElementById(id);if(!el)return;
+  const txt=el.innerText||el.textContent;
+  navigator.clipboard.writeText(txt).then(()=>setStatus('✓ Copied to clipboard!','r')).catch(()=>{const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);setStatus('✓ Copied!','r');});
+}
+let gTitle='';
+function copyOriginalTitle(){if(!gTitle)return;navigator.clipboard.writeText(gTitle).then(()=>setStatus('✓ Original title copied!','r')).catch(()=>{});}
+
+// ── Sound ──
+let sound=null;
+function playSound(){try{if(!sound)sound=new Audio('websound.mp3');sound.currentTime=0;sound.volume=0.6;sound.play().catch(()=>{});}catch(e){}}
+
+// ── Status ──
+function setStatus(msg,type='b'){const el=document.getElementById('status-msg');if(!el)return;el.innerHTML=(type==='b'?'<span class="spinner"></span>':'')+msg;el.className='smsg s'+type;}
+
+// ── Canvas ──
+const canvas=document.getElementById('web-canvas');
+const ctx=canvas.getContext('2d');
+function resizeCanvas(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
+resizeCanvas();window.addEventListener('resize',resizeCanvas);
+function getCenter(el){const r=el.getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2};}
+
+// ── Web Animation ──
+let animFrame=null;
+function runWebAnimation(fromEl,toEl,onDone){
+  if(animFrame)cancelAnimationFrame(animFrame);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const grabberEl=document.getElementById('url-grabber');
+  const from=getCenter(fromEl);const to=getCenter(toEl);
+  const url=document.getElementById('video-url').value;
+  const shortUrl=url.length>36?url.substring(0,36)+'...':url;
+  grabberEl.textContent='🔗 '+shortUrl;grabberEl.style.display='block';grabberEl.style.opacity='1';
+  const numStrands=14;const strands=[];
+  for(let i=0;i<numStrands;i++){
+    const angle=(i/numStrands)*Math.PI*2;const spread=i===0?0:10+Math.random()*25;
+    strands.push({sx:from.x+Math.cos(angle)*spread,sy:from.y+Math.sin(angle)*spread,ex:to.x+Math.cos(angle)*(spread*0.15),ey:to.y+Math.sin(angle)*(spread*0.15),cpx:(from.x+to.x)/2+(Math.random()-0.5)*100,cpy:Math.min(from.y,to.y)-(60+Math.random()*80),progress:0,speed:0.009+Math.random()*0.007,delay:i*2,trail:[],width:i===0?2:0.5+Math.random()*1,alpha:i===0?1:0.25+Math.random()*0.45,color:i===0?'#00f5ff':i%4===0?'#bf00ff':i%3===0?'#00ff88':'#00f5ff',done:false});
+  }
+  let fc=0;const pulseRings=[];
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);fc++;let anyActive=false;
+    strands.forEach(s=>{
+      if(fc<s.delay){anyActive=true;return;}if(s.done)return;anyActive=true;
+      s.progress=Math.min(1,s.progress+s.speed);
+      const t=s.progress;const bx=(1-t)*(1-t)*s.sx+2*(1-t)*t*s.cpx+t*t*s.ex;const by=(1-t)*(1-t)*s.sy+2*(1-t)*t*s.cpy+t*t*s.ey;
+      s.trail.push({x:bx,y:by});if(s.trail.length>45)s.trail.shift();
+      if(s.trail.length>1){ctx.beginPath();ctx.moveTo(s.trail[0].x,s.trail[0].y);for(let i=1;i<s.trail.length;i++)ctx.lineTo(s.trail[i].x,s.trail[i].y);ctx.strokeStyle=s.color;ctx.globalAlpha=s.alpha;ctx.lineWidth=s.width;ctx.shadowColor=s.color;ctx.shadowBlur=10;ctx.stroke();ctx.globalAlpha=1;ctx.shadowBlur=0;}
+      ctx.beginPath();ctx.arc(bx,by,s===strands[0]?3.5:1.5,0,Math.PI*2);ctx.fillStyle=s.color;ctx.shadowColor=s.color;ctx.shadowBlur=14;ctx.fill();ctx.shadowBlur=0;
+      const idx=strands.indexOf(s);if(idx>0&&idx<strands.length-1){const prev=strands[idx-1];if(prev.trail.length>3){const a={x:bx,y:by};const b=prev.trail[prev.trail.length-1];if(Math.hypot(a.x-b.x,a.y-b.y)<100){ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.strokeStyle='rgba(0,245,255,0.1)';ctx.lineWidth=0.4;ctx.globalAlpha=0.4;ctx.stroke();ctx.globalAlpha=1;}}}
+      if(s===strands[0]){grabberEl.style.left=bx+'px';grabberEl.style.top=(by-32)+'px';const fade=t<0.1?t*10:t>0.88?(1-t)*8.3:1;grabberEl.style.opacity=Math.max(0,fade).toString();}
+      if(s.progress>=1){s.done=true;if(s===strands[0]){grabberEl.style.display='none';pulseRings.push({r:10,alpha:0.9});pulseRings.push({r:5,alpha:0.7});}}
+    });
+    const lc=getCenter(toEl);
+    for(let i=pulseRings.length-1;i>=0;i--){const ring=pulseRings[i];ring.r+=2.5;ring.alpha-=0.035;if(ring.alpha<=0){pulseRings.splice(i,1);continue;}ctx.beginPath();ctx.arc(lc.x,lc.y,ring.r,0,Math.PI*2);ctx.strokeStyle=`rgba(0,245,255,${ring.alpha})`;ctx.lineWidth=1.5;ctx.shadowColor='#00f5ff';ctx.shadowBlur=8;ctx.stroke();ctx.shadowBlur=0;anyActive=true;}
+    if(anyActive){animFrame=requestAnimationFrame(draw);}else{setTimeout(()=>{ctx.clearRect(0,0,canvas.width,canvas.height);grabberEl.style.display='none';if(onDone)onDone();},200);}
+  }
+  draw();
+}
+
+// ── Video ID ──
+function getVid(url){const m=url.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([a-zA-Z0-9_-]{11})/);return m?m[1]:null;}
+
+// ── Render Thumbnails ──
+function renderThumbs(vid){
+  const sizes=[{k:'maxresdefault',l:'MAX RES · 1280×720'},{k:'sddefault',l:'SD · 640×480'},{k:'hqdefault',l:'HQ · 480×360'},{k:'mqdefault',l:'MQ · 320×180'}];
+  document.getElementById('thumb-grid').innerHTML=sizes.map(s=>`<div class="thumb-item"><img src="https://img.youtube.com/vi/${vid}/${s.k}.jpg" onerror="this.closest('.thumb-item').style.display='none'"/><div class="thumb-info">${s.l}</div><a href="https://img.youtube.com/vi/${vid}/${s.k}.jpg" download="thumb_${s.k}.jpg" target="_blank" class="thumb-dl" style="text-decoration:none">⬇ DOWNLOAD</a></div>`).join('');
+}
+
+// ── Render Titles ──
+function renderTitles(title,channel){
+  const clean=(title||'this topic').replace(/[|#@*]/g,'').trim();
+  const ch=channel||'your channel';const w=clean.split(' ');
+  const v=[`${clean} — Nobody Told You This`,`Stop Doing This With ${w.slice(0,4).join(' ')} (Do THIS Instead)`,`I Discovered The Truth About ${clean} And It Changed Everything`,`Why ${w.slice(0,5).join(' ')} Is NOT What You Think`,`The ${w.slice(0,4).join(' ')} Secret That Went Viral For A Reason`];
+  document.getElementById('titles-body').textContent=`ORIGINAL TITLE:\n${title||'[not found]'}\n\n${'━'.repeat(42)}\n5 VIRAL CTR-OPTIMIZED TITLE VARIANTS\n${'━'.repeat(42)}\n\n[01] ${v[0]}\n\n[02] ${v[1]}\n\n[03] ${v[2]}\n\n[04] ${v[3]}\n\n[05] ${v[4]}\n\n${'━'.repeat(42)}\nCHANNEL: ${ch}\nTIP: Keep titles under 60 characters for full display.`;
+}
+
+// ── Render Thumb Prompt ──
+function renderThumbPrompt(title,vid){
+  const clean=(title||'video topic').replace(/[|#@*]/g,'').trim();
+  const ref=`https://img.youtube.com/vi/${vid}/maxresdefault.jpg`;
+  document.getElementById('thumbprompt-body').textContent=`REFERENCE THUMBNAIL:\n${ref}\n\n${'━'.repeat(42)}\nAI IMAGE GENERATION PROMPT\n(Midjourney / DALL-E / Ideogram / Firefly)\n${'━'.repeat(42)}\n\nUse the provided reference thumbnail only as inspiration for the overall visual style, emotional impact, composition, and storytelling and create a thumbnail. Do NOT recreate, trace, or closely imitate the original image. Create a completely new thumbnail with its own scene, character pose, facial expression, background, lighting, camera angle, and visual details while preserving the same emotional intensity and click-worthy appeal.\n\nThe new thumbnail should capture the same vibe and psychological impact as the reference — strong eye contact, cinematic realism, dramatic lighting, high contrast, shallow depth of field, bold visual hierarchy, and a clean composition that immediately grabs attention.\n\nVIDEO TOPIC: "${clean}"\n\nMaintain the same level of professionalism and YouTube CTR optimization, but ensure the result is 100% original:\n\n• Different character appearance and clothing\n• Different pose and camera framing\n• Different environment/background\n• Different props and supporting details\n• Different color distribution while keeping a similar cinematic mood\n• Different facial expression that conveys the same emotion\n\nThe thumbnail should feel like it belongs to the same successful design style, not like a duplicate. Viewers should recognize the familiar aesthetic without confusing it for the original image.\n\nStyle: Ultra-realistic photography, 16:9 aspect ratio, 1280×720px, YouTube-optimized.`;
+}
+
+// ── Render Script ──
+function renderScript(title,channel){
+  const clean=(title||'this topic').replace(/[|#@*]/g,'').trim();
+  const ch=channel||'your channel';
+  document.getElementById('script-body').textContent=`TOPIC: "${clean}"\nCHANNEL: "${ch}"\n\n${'━'.repeat(42)}\nSTRICT REQUIREMENTS — READ EVERY RULE:\n${'━'.repeat(42)}\n\n1. LENGTH: 15 to 20 minutes of spoken content\n   (3,500 to 4,500 words at natural speaking pace)\n\n2. ZERO AI VOCABULARY — these words are BANNED:\n   delve, tapestry, crucial, leverage, paramount, utilize,\n   comprehensive, multifaceted, pivotal, foster, underscore,\n   navigate, align, synergy, robust, scalable, streamline,\n   in conclusion, furthermore, moreover, subsequently,\n   it is worth noting, it is important to note\n\n3. WRITE LIKE A REAL HUMAN STORYTELLER:\n   - Write exactly how a passionate person talks to a close friend\n   - Short sentences. Punchy. Then a longer one for rhythm.\n   - Use contractions always: you\'re, it\'s, I\'ve, don\'t, they\'ll\n   - Real phrases: "here\'s the thing", "look", "honestly",\n     "I\'m not gonna lie", "right?", "nobody talks about this"\n   - Pause moments: "..." or "Think about that for a second."\n   - Talk directly TO the viewer: "You\'ve probably felt this."\n\n4. EMOTIONAL STRUCTURE:\n\n   [COLD OPEN — 0:00 to 0:45] ~150 words\n   Start in the middle of a story or drop a shocking statement.\n   No greetings. No channel intro. Just start.\n   End with a question or cliffhanger.\n\n   [HOOK & PROMISE — 0:45 to 2:00] ~250 words\n   Tell them exactly what they will discover.\n   Make a bold promise. Acknowledge their pain point.\n   Tease the most emotional moment coming later.\n\n   [MAIN STORY — 2:00 to 14:00] ~2,800 words\n   Break into 4-5 emotionally distinct chapters.\n   Each chapter: setup → conflict → turn → emotion.\n   Use real stories, vivid details, sensory language.\n   Add mid-roll CTA at minute 7-8:\n   "If this is hitting different for you right now, drop a comment.\n   Have you ever felt this way? I read every single one."\n\n   [EMOTIONAL PEAK — 14:00 to 16:30] ~600 words\n   The most powerful moment. The revelation nobody says out loud.\n   Write this so honest it could make someone tear up.\n\n   [OUTRO & CTA — 16:30 to end] ~400 words\n   Land the message. 3 key takeaways in plain human language.\n   End with something they will remember.\n   "If this video made you feel something — that\'s exactly what\n   this channel is for. Hit subscribe so you don\'t miss what\'s next."\n\n5. TONE: Raw, honest, emotionally intelligent, deeply human\n6. FORMAT: Continuous prose — NO scene labels, NO [brackets]\n7. PACING: Written for voiceover or AI avatar delivery\n\nWrite the complete full-length script now. Do not skip sections.`;
+}
+
+// ── Render SEO ──
+function renderSEO(title,channel){
+  const clean=(title||'video topic').replace(/[|#@*]/g,'').trim();
+  const ch=channel||'yourchannel';
+  const words=clean.toLowerCase().split(' ').filter(w=>w.length>3);
+  const k1=words[0]||'youtube',k2=words[1]||'video',k3=words[2]||'story';
+  const w=clean.split(' ');
+  const titles=[`${clean} — Nobody Told You This`,`Stop Doing This With ${w.slice(0,4).join(' ')}`,`I Discovered The Truth About ${clean}`,`Why ${w.slice(0,5).join(' ')} Is NOT What You Think`,`The ${w.slice(0,4).join(' ')} Secret That Went Viral`];
+  const tags=[k1,k2,k3,`${k1} ${k2}`,`${k1} story`,`${k1} truth`,`${k2} ${k3}`,`real ${k1}`,`${k1} 2026`,`${k2} explained`,`${k1} facts`,`viral ${k1}`,`${k3} ${k1}`,`${k1} reaction`,ch.toLowerCase().replace(/\s/g,'')].filter((v,i,a)=>a.indexOf(v)===i).slice(0,15);
+  const htags=[`#${k1.replace(/\s/g,'')}`,`#${k2.replace(/\s/g,'')}`,`#${k3.replace(/\s/g,'')}`,`#YouTube`,`#Viral`,`#${k1.replace(/\s/g,'')}Story`,`#YouTubeGrowth`,`#Trending2026`,`#${ch.replace(/\s/g,'')}`];
+  const desc=`${clean} — the full story, finally told.\n\nIn this video, I'm breaking down everything about ${clean} that nobody else is saying out loud.\n\nWhat you'll discover:\n▶ The real truth behind ${clean}\n▶ What actually happened and why it matters\n▶ The part everyone gets completely wrong\n▶ What you can take away from this today\n\nIf this video hits different for you — leave a comment. I read every single one.\n\n👍 Like if this made you feel something\n🔔 Subscribe: https://youtube.com/@${ch.replace(/\s/g,'')}\n💬 Drop your thoughts below\n\n${htags.join(' ')}`;
+  document.getElementById('seo-body').textContent=`TOPIC: "${clean}" // CHANNEL: ${ch}\n${'━'.repeat(42)}\n\n[5 VIRAL TITLE VARIANTS]\n${'─'.repeat(40)}\n[01] ${titles[0]}\n[02] ${titles[1]}\n[03] ${titles[2]}\n[04] ${titles[3]}\n[05] ${titles[4]}\n\n${'━'.repeat(42)}\n[META DESCRIPTION + HASHTAGS]\n${'─'.repeat(40)}\n${desc}\n\n${'━'.repeat(42)}\n[TAGS — ${tags.length} TOTAL]\n${'─'.repeat(40)}\n${tags.join(', ')}`;
+}
+
+// ── History ──
+let extractHistory=JSON.parse(localStorage.getItem('cf_history')||'[]');
+function saveToHistory(vid,title,channel,thumbUrl){
+  extractHistory.unshift({vid,title,channel,thumbUrl,time:new Date().toLocaleString(),url:document.getElementById('video-url').value});
+  if(extractHistory.length>20)extractHistory=extractHistory.slice(0,20);
+  localStorage.setItem('cf_history',JSON.stringify(extractHistory));
+}
+function renderHistory(){
+  const el=document.getElementById('history-list');
+  if(!extractHistory.length){el.innerHTML='<div style="font-family:\'Share Tech Mono\',monospace;font-size:11px;color:var(--text3);text-align:center;padding:30px">No history yet. Extract a video first.</div>';return;}
+  el.innerHTML=extractHistory.map((h,i)=>`
+    <div class="history-item" onclick="loadFromHistory(${i})">
+      <img class="history-thumb" src="https://img.youtube.com/vi/${h.vid}/mqdefault.jpg" onerror="this.style.display='none'"/>
+      <div class="history-meta">
+        <div class="history-title">${h.title||h.vid}</div>
+        <div class="history-ch">${h.channel||'Unknown'}</div>
+      </div>
+      <div class="history-time">${h.time}</div>
+      <button class="history-load-btn">LOAD</button>
+    </div>`).join('');
+}
+function loadFromHistory(i){
+  const h=extractHistory[i];
+  document.getElementById('video-url').value=h.url||`https://youtube.com/watch?v=${h.vid}`;
+  switchMode('main');
+  setTimeout(()=>startExtract(),300);
+}
+function clearHistory(){extractHistory=[];localStorage.removeItem('cf_history');renderHistory();}
+
+// ── Steal Mode ──
+async function runSteal(){
+  const url=document.getElementById('steal-url').value.trim();
+  const ch=document.getElementById('steal-channel').value.trim()||'my channel';
+  if(!url){document.getElementById('steal-status').textContent='⚠ Enter a competitor URL';return;}
+  const vid=getVid(url);
+  if(!vid){document.getElementById('steal-status').textContent='⚠ Invalid YouTube URL';return;}
+  document.getElementById('steal-btn').disabled=true;
+  document.getElementById('steal-status').innerHTML='<span class="spinner"></span>Analyzing competitor video...';
+  let title='',channel='';
+  try{const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),6000);let oe;try{oe=await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${vid}&format=json`,{signal:controller.signal});}catch(e){oe={ok:false};}finally{clearTimeout(timeout);}if(oe.ok){const d=await oe.json();title=d.title||'';channel=d.author_name||'';}}catch(e){}
+  const clean=(title||'this topic').replace(/[|#@*]/g,'').trim();
+  const w=clean.split(' ');
+  const output=`COMPETITOR VIDEO ANALYSIS\n${'━'.repeat(42)}\nOriginal Title: ${title||'[not found]'}\nChannel: ${channel||'Unknown'}\nVideo ID: ${vid}\n\n${'━'.repeat(42)}\nSTEAL STRATEGY FOR: ${ch}\n${'━'.repeat(42)}\n\n[YOUR ANGLE — Different but same virality]\n[01] The OTHER Side of ${clean} Nobody Shows You\n[02] I Tried ${w.slice(0,4).join(' ')} For 30 Days — Honest Results\n[03] ${clean} — What ${channel||'They'} Got Wrong\n[04] Before You Watch "${title}" — Watch This First\n[05] ${clean}: My Version of This Story\n\n${'━'.repeat(42)}\n[THUMBNAIL STRATEGY]\n${'─'.repeat(40)}\nReference: https://img.youtube.com/vi/${vid}/maxresdefault.jpg\n\nCreate a thumbnail inspired by theirs but:\n• Different person/character\n• Different background color scheme\n• Different emotion (match intensity, not the exact expression)\n• Your channel branding instead of theirs\n• Same bold text style but different words\n\n${'━'.repeat(42)}\n[CONTENT ANGLE]\n${'─'.repeat(40)}\nTopic: ${clean}\nTake: Give the OPPOSITE perspective OR the untold backstory\nHook: Start with what ${channel||'the original'} didn't say\nDiff: Add personal story, your own research, or real reactions\nEnd: Stronger CTA — make viewers feel they got MORE than the original\n\n${'━'.repeat(42)}\n[SEO — APPEAR IN SAME SEARCH]\n${'─'.repeat(40)}\nUse these tags to appear alongside the original:\n${w.slice(0,3).join(', ')}, ${clean}, ${channel||''}, ${w.slice(0,2).join(' ')} reaction, ${w.slice(0,2).join(' ')} response, ${clean} truth`;
+  document.getElementById('steal-output').innerHTML=`<div class="out-card"><div class="out-card-hdr"><div class="out-card-title">STEAL STRATEGY — ${title.substring(0,30)}...</div><button class="copy-btn" onclick="doCopyText(this)">COPY</button></div><div class="steal-out" id="steal-out-body">${escH(output)}</div></div>`;
+  document.getElementById('steal-status').textContent='✓ Strategy ready!';
+  document.getElementById('steal-btn').disabled=false;
+}
+
+// ── Batch Mode ──
+async function runBatch(){
+  const raw=document.getElementById('batch-urls').value.trim();
+  const ch=document.getElementById('batch-channel').value.trim();
+  if(!raw){document.getElementById('batch-status').textContent='⚠ Paste at least one URL';return;}
+  const urls=raw.split('\n').map(u=>u.trim()).filter(u=>u&&getVid(u)).slice(0,5);
+  if(!urls.length){document.getElementById('batch-status').textContent='⚠ No valid YouTube URLs found';return;}
+  document.getElementById('batch-btn').disabled=true;
+  document.getElementById('batch-output').innerHTML='';
+  document.getElementById('batch-status').innerHTML=`<span class="spinner"></span>Processing ${urls.length} URLs...`;
+  const results=[];
+  for(let i=0;i<urls.length;i++){
+    document.getElementById('batch-status').innerHTML=`<span class="spinner"></span>Extracting ${i+1}/${urls.length}...`;
+    const vid=getVid(urls[i]);let title='',channel='';
+    try{const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),6000);let oe;try{oe=await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${vid}&format=json`,{signal:controller.signal});}catch(e){oe={ok:false};}finally{clearTimeout(timeout);}if(oe.ok){const d=await oe.json();title=d.title||'';channel=d.author_name||'';}}catch(e){}
+    const clean=(title||vid).replace(/[|#@*]/g,'').trim();
+    const w=clean.split(' ');
+    const userCh=ch||channel;
+    const tags=[...w.slice(0,3).map(x=>x.toLowerCase()),`${(w[0]||'').toLowerCase()} ${(w[1]||'').toLowerCase()}`,`${clean.toLowerCase()} 2026`,`viral ${(w[0]||'').toLowerCase()}`].slice(0,10);
+    const htags=[`#${(w[0]||'youtube').replace(/\s/g,'')}`,`#${(w[1]||'video').replace(/\s/g,'')}`,`#YouTube`,`#Viral2026`,`#${userCh.replace(/\s/g,'')}`];
+    const seo=`[${i+1}] ${title||vid}\nChannel: ${channel}\n${'─'.repeat(38)}\nTITLES:\n• ${clean} — Nobody Told You This\n• Stop Doing This With ${w.slice(0,3).join(' ')}\n• The Truth About ${clean}\n\nDESCRIPTION:\n${clean} — everything you need to know.\nWatch until the end for the part nobody talks about.\n👍 Like & 🔔 Subscribe: https://youtube.com/@${userCh.replace(/\s/g,'')}\n${htags.join(' ')}\n\nTAGS: ${tags.join(', ')}\n\nTHUMBNAIL: https://img.youtube.com/vi/${vid}/maxresdefault.jpg`;
+    results.push({title,seo,vid});
+  }
+  const container=document.getElementById('batch-output');
+  results.forEach((r,i)=>{
+    const div=document.createElement('div');div.className='batch-result';
+    div.innerHTML=`<div class="batch-result-hdr"><span>${i+1}. ${(r.title||r.vid).substring(0,50)}</span><button class="copy-btn" onclick="doCopyText(this)">COPY</button></div><div class="batch-result-body" id="batch-r-${i}">${escH(r.seo)}</div>`;
+    container.appendChild(div);
+  });
+  document.getElementById('batch-status').textContent=`✓ ${results.length} videos processed!`;
+  document.getElementById('batch-btn').disabled=false;
+}
+
+// ── Script Scanner ──
+const AI_WORDS=['delve','tapestry','crucial','leverage','paramount','utilize','comprehensive','multifaceted','pivotal','foster','underscore','navigate','align','synergy','robust','scalable','streamline','in conclusion','furthermore','moreover','subsequently','it is worth noting','it is important to note','at the end of the day','dive deep','think about','game changer','game-changer','groundbreaking','innovative','revolutionary','seamlessly','holistic','ecosystem','empower','elevate','cutting-edge','state-of-the-art','best practices','key takeaways','deep dive','peeling back','unpack','uncover','shed light','shed some light','moving forward','going forward','circle back','touch base','bandwidth','leverage','utilize','facilitate','implement','demonstrate','ensure','provide','obtain','assist','endeavor','commence','terminate','communicate','indicate','require','purchase'];
+
+function runScanner(){
+  const text=document.getElementById('scanner-input').value.trim();
+  if(!text){document.getElementById('scanner-output').innerHTML='<div class="err-box">⚠ Paste your script first.</div>';return;}
+  let badCount=0;const foundWords=[];
+  let highlighted=text;
+  // Sort by length descending to match longer phrases first
+  const sorted=[...AI_WORDS].sort((a,b)=>b.length-a.length);
+  const escaped=escH(text);
+  let result=escaped;
+  sorted.forEach(w=>{
+    const re=new RegExp('\\b'+w.replace(/[-]/g,'\\-').replace(/\s+/g,'\\s+')+'\\b','gi');
+    if(re.test(escaped)){foundWords.push(w);badCount++;}
+    result=result.replace(re,`<span class="w-bad">$&</span>`);
+  });
+  const score=Math.max(0,100-badCount*8);
+  document.getElementById('scanner-output').innerHTML=`
+    <div class="scan-stats">
+      <div class="scan-stat">AI SCORE<span style="color:${score>80?'var(--green)':score>50?'var(--amber)':'var(--red)'}">  ${score}/100</span></div>
+      <div class="scan-stat">AI WORDS FOUND<span style="color:var(--red)">${badCount}</span></div>
+      <div class="scan-stat">TOTAL WORDS<span style="color:var(--neon)">${text.split(/\s+/).length}</span></div>
+      <div class="scan-stat">STATUS<span style="color:${score>80?'var(--green)':'var(--red)'}">${score>80?'CLEAN ✓':score>50?'MODERATE':'NEEDS FIX'}</span></div>
+    </div>
+    ${badCount>0?`<div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--red);margin:10px 0;letter-spacing:1px">AI WORDS TO REPLACE: ${[...new Set(foundWords)].join(', ')}</div>`:''}
+    <div class="scanner-out">${result}</div>`;
+}
+
+// ── Main Extract ──
+async function startExtract(){
+  const url=document.getElementById('video-url').value.trim();
+  const myChannel=document.getElementById('channel-name').value.trim();
+  if(!url){setStatus('⚠ Please paste a YouTube URL first','e');return;}
+  const vid=getVid(url);
+  if(!vid){setStatus('⚠ Invalid YouTube URL — check format','e');return;}
+  document.getElementById('extract-btn').disabled=true;
+  document.getElementById('results-section').style.display='none';
+  setStatus('Spider web deploying...','b');
+  playSound();
+
+  const inputEl=document.querySelector('#mode-main .card');
+  const logoEl=document.querySelector('.spider-svg');
+
+  // Fetch and animation run simultaneously
+  if(!isMobile){
+    const logoTarget=document.getElementById('logo-img')||document.querySelector('.spider-wrap');
+    runWebAnimation(inputEl,logoTarget,()=>{});
+  }
+  doExtract(vid,url,myChannel);
+}
+
+async function doExtract(vid,url,myChannel){
+  setStatus('Fetching video data...','b');
+  let title='',channel='';
+  try{
+    const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),6000);let oe;try{oe=await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${vid}&format=json`,{signal:controller.signal});}catch(e){oe={ok:false};}finally{clearTimeout(timeout);}
+    if(oe.ok){const d=await oe.json();title=d.title||'';channel=d.author_name||'';}
+    else{setStatus('⚠ Could not fetch video info. Check URL.','e');document.getElementById('extract-btn').disabled=false;return;}
+  }catch(e){setStatus('⚠ Network error — check your connection','e');document.getElementById('extract-btn').disabled=false;return;}
+
+  const userChannel=myChannel||channel;
+  gTitle=title;
+
+  // Fill video card
+  document.getElementById('vi-title').textContent=title||'[Title not found]';
+  document.getElementById('vi-ch').textContent=channel||'Unknown';
+  document.getElementById('vi-vid').textContent=vid;
+  document.getElementById('vi-url').textContent=url;
+  document.getElementById('vi-thumb').src=`https://img.youtube.com/vi/${vid}/hqdefault.jpg`;
+
+  // Render all
+  renderThumbs(vid);
+  renderTitles(title,userChannel);
+  renderThumbPrompt(title,vid);
+  renderScript(title,userChannel);
+  renderSEO(title,userChannel);
+
+  // Save to history
+  saveToHistory(vid,title,channel,`https://img.youtube.com/vi/${vid}/mqdefault.jpg`);
+
+  // Reset tabs to first
+  document.querySelectorAll('.out-tab').forEach((b,i)=>{b.classList.toggle('active',i===0);});
+  document.querySelectorAll('.out-panel').forEach((p,i)=>{p.classList.toggle('active',i===0);});
+
+  document.getElementById('results-section').style.display='block';
+  document.getElementById('results-section').scrollIntoView({behavior:'smooth',block:'start'});
+  setStatus('✓ All tools ready — scroll down for results','r');
+  document.getElementById('extract-btn').disabled=false;
+}
+
+// ── Helpers ──
+function escH(t){return(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function doCopyText(btn){const body=btn.closest('.out-card,.batch-result').querySelector('.steal-out,.batch-result-body,.out-body');if(!body)return;navigator.clipboard.writeText(body.innerText||body.textContent).then(()=>{btn.textContent='✓';setTimeout(()=>btn.textContent='COPY',1500);});}
+
+// ── Enter key ──
+['video-url','channel-name'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el)el.addEventListener('keydown',e=>{if(e.key==='Enter')startExtract();});
+});
+document.getElementById('steal-url').addEventListener('keydown',e=>{if(e.key==='Enter')runSteal();});
+document.getElementById('batch-urls').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.ctrlKey)runBatch();});
+</script>
+</body>
+</html>
