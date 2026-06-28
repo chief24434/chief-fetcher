@@ -8,7 +8,12 @@
 <meta property="og:title" content="CHIEF'S FETCHER — YouTube Creator Suite"/>
 <meta property="og:description" content="Free YouTube creator tools — thumbnails, titles, SEO, scripts. No API required."/>
 <meta property="og:type" content="website"/>
-<meta name="theme-color" content="#00f5ff"/>
+<meta name="theme-color" content="#00f5ff"/><link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="logo.png"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="CF Fetcher"/>
+<meta name="mobile-web-app-capable" content="yes"/>
 <link rel="icon" type="image/png" href="logo.png"/>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -942,5 +947,20 @@ function openAI(app,text){
   setStatus('✓ Prompt copied! Paste it in '+app.charAt(0).toUpperCase()+app.slice(1),'r');
 }
 </script>
-</body>
+<div id="pwa-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:99999;background:rgba(0,245,255,0.08);border-top:1px solid rgba(0,245,255,0.3);padding:14px 16px;align-items:center;justify-content:space-between;gap:10px;backdrop-filter:blur(12px)">
+  <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:#00f5ff;letter-spacing:1px">⚡ Install CHIEF'S FETCHER as an app</div>
+  <div style="display:flex;gap:8px">
+    <button id="pwa-install-btn" style="padding:8px 16px;background:rgba(0,245,255,0.12);border:1px solid #00f5ff;border-radius:3px;color:#00f5ff;font-family:'Share Tech Mono',monospace;font-size:10px;cursor:pointer">INSTALL</button>
+    <button id="pwa-dismiss-btn" style="padding:8px 12px;background:transparent;border:1px solid rgba(0,245,255,0.2);border-radius:3px;color:rgba(0,245,255,0.5);font-family:'Share Tech Mono',monospace;font-size:10px;cursor:pointer">✕</button>
+  </div>
+</div>
+<script>
+if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').then(r=>console.log('SW:',r.scope)).catch(e=>console.log('SW err',e));});}
+let deferredPrompt=null;
+const pwaBanner=document.getElementById('pwa-banner');
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;if(!localStorage.getItem('pwa_dismissed'))pwaBanner.style.display='flex';});
+document.getElementById('pwa-install-btn').addEventListener('click',async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;pwaBanner.style.display='none';});
+document.getElementById('pwa-dismiss-btn').addEventListener('click',()=>{pwaBanner.style.display='none';localStorage.setItem('pwa_dismissed','1');});
+window.addEventListener('appinstalled',()=>{pwaBanner.style.display='none';});
+</script></body>
 </html>
